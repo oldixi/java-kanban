@@ -5,31 +5,32 @@ import java.util.HashMap;
 import model.*;
 
 public class Manager {
-    public static final String NEW = "NEW";
-    public static final String INPROGRESS = "IN_PROGRESS";
-    public static final String DONE = "DONE";
+    protected static final String NEW = "NEW";
+    protected static final String INPROGRESS = "IN_PROGRESS";
+    protected static final String DONE = "DONE";
 
-    public static final int TASK = 1;
-    public static final int EPIC = 2;
-    public static final int SUBTASK = 3;
+    protected static final int TASK = 1;
+    protected static final int EPIC = 2;
+    protected static final int SUBTASK = 3;
 
-    HashMap<Integer, Task> taskMap;
-    HashMap<Integer, Epic> epicMap;
-    HashMap<Integer, Subtask> subtaskMap;
+    private HashMap<Integer, Task> taskMap;
+    private HashMap<Integer, Epic> epicMap;
+    private HashMap<Integer, Subtask> subtaskMap;
 
-    int tasksId;
+    private int tasksId;
 
-    public Manager() {
+    protected Manager() {
         taskMap = new HashMap<>();
         epicMap = new HashMap<>();
         subtaskMap = new HashMap<>();
         tasksId = 0;
     }
-    private Integer formId() {
+
+    private Integer nextId() {
         return ++tasksId;
     }
 
-    public ArrayList<Integer> getAllTasks(int taskType) {
+    protected ArrayList<Integer> getAllTasksId(int taskType) {
         try {
             switch (taskType) {
                 case TASK:
@@ -48,7 +49,19 @@ public class Manager {
         return new ArrayList<>();
     }
 
-    public void removeAllTasks(int taskType) {
+    protected ArrayList<Epic> getAllEpics() {
+        return new ArrayList<>(epicMap.values());
+    }
+
+    protected ArrayList<Subtask> getAllSubtasks() {
+        return new ArrayList<>(subtaskMap.values());
+    }
+
+    protected ArrayList<Task> getAllTasks() {
+        return new ArrayList<>(taskMap.values());
+    }
+
+    protected void removeAllTasks(int taskType) {
         try {
             switch (taskType) {
                 case TASK:
@@ -77,7 +90,7 @@ public class Manager {
         }
     }
 
-    public Task getTask(int taskId, int taskType) {
+    protected Task getTask(int taskId, int taskType) {
         try {
             switch (taskType) {
                 case TASK:
@@ -102,8 +115,8 @@ public class Manager {
         return null;
     }
 
-    public int createTask(Task task, int taskType) {
-        int taskId = formId();
+    protected int createTask(Task task, int taskType) {
+        int taskId = nextId();
         try {
             task.setId(taskId);
             switch (taskType) {
@@ -126,7 +139,7 @@ public class Manager {
         return taskId;
     }
 
-    public int createEpicWithSubtasks(Epic epic, ArrayList<Subtask> subtasksArray) {
+    protected int createEpicWithSubtasks(Epic epic, ArrayList<Subtask> subtasksArray) {
         int epicId = createTask(epic, EPIC);
         int subtaskId;
 
@@ -143,7 +156,7 @@ public class Manager {
         return epicId;
     }
 
-    public void updateTask(int taskId, Task task, int taskType) {
+    protected void updateTask(int taskId, Task task, int taskType) {
         if (getTask(taskId, taskType) != null) {
             try {
                 switch (taskType) {
@@ -186,7 +199,7 @@ public class Manager {
         }
     }
 
-    public void removeTask(int taskId, int taskType) {
+    protected void removeTask(int taskId, int taskType) {
         if (getTask(taskId, taskType) != null) {
             try {
                 switch (taskType) {
@@ -222,20 +235,21 @@ public class Manager {
         }
     }
 
-    public HashMap<Integer, Subtask> getAllSubtasksForEpic(int epicId) {
-        HashMap<Integer, Subtask> subtaskHashMapForEpic = new HashMap<>();
-        if (epicMap.containsKey(epicId)) {
-            for (Subtask subtask : epicMap.get(epicId).getSubtaskArray()) {
-                subtaskHashMapForEpic.put(subtask.getId(),subtask);
+    protected ArrayList<Subtask> getAllSubtasksForEpic(int epicId) {
+        try {
+            if (epicMap.containsKey(epicId)) {
+                return epicMap.get(epicId).getSubtaskArray();
+            } else {
+                System.out.println("Не найдены подзадачи с указанным идентификатором эпик-задачи.");
             }
-            return subtaskHashMapForEpic;
-        } else {
-            System.out.println("Не найдены подзадачи с указанным идентификатором эпик-задачи.");
-            return null;
         }
+        catch (NullPointerException npe) {
+            System.out.println("Список задач пуст.");
+        }
+        return null;
     }
 
-    public String calcEpicStatus(Integer idEpic, Epic epicForCals) {
+    protected String calcEpicStatus(Integer idEpic, Epic epicForCals) {
         String status = INPROGRESS;
         Epic epic = epicForCals;
         boolean isOnlyNew = true;
@@ -275,7 +289,7 @@ public class Manager {
         return status;
     }
 
-    public void printTask(int taskId, int taskType) {
+    protected void printTask(int taskId, int taskType) {
         try {
             switch (taskType) {
                 case TASK:
@@ -299,7 +313,7 @@ public class Manager {
         }
     }
 
-    public void printEpicWithSubtasks(int epicId) {
+    protected void printEpicWithSubtasks(int epicId) {
         printTask(epicId, EPIC);
         Epic epic = (Epic) getTask(epicId, EPIC);
         if (epic != null) {
@@ -309,7 +323,7 @@ public class Manager {
         }
     }
 
-    public static class IllegalTaskType extends Exception {
+    protected static class IllegalTaskType extends Exception {
         public IllegalTaskType(String message) {
             super(message);
         }

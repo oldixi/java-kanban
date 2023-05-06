@@ -3,14 +3,14 @@ package model;
 import java.util.Objects;
 
 public class Subtask extends Task {
-    Integer epicId;
+    protected Integer epicId;
 
     public Subtask(String name, String dsc, String status, int epicId) {
         super(name, dsc, status);
         this.epicId = epicId;
     }
 
-    public Subtask(int id, String name, String dsc, int epicId) {
+    public Subtask(String name, String dsc, int epicId) {
         super(name, dsc);
         this.epicId = epicId;
     }
