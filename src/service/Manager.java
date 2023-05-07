@@ -10,10 +10,6 @@ public class Manager {
     private static final String INPROGRESS = "IN_PROGRESS";
     private static final String DONE = "DONE";
 
-    private static final int TASK = 1;
-    private static final int EPIC = 2;
-    private static final int SUBTASK = 3;
-
     private HashMap<Integer, Task> taskMap;
     private HashMap<Integer, Epic> epicMap;
     private HashMap<Integer, Subtask> subtaskMap;
@@ -51,45 +47,36 @@ public class Manager {
     }
 
     public Task getTask(int taskId) {
-        if (taskMap.containsKey(taskId)) {
-            return taskMap.get(taskId);
-        }
-        return null;
+        return taskMap.get(taskId);
     }
 
     public Subtask getSubtask(int subtaskId) {
-        if (subtaskMap.containsKey(subtaskId)) {
-            return subtaskMap.get(subtaskId);
-        }
-        return null;
+        return subtaskMap.get(subtaskId);
     }
 
     public Epic getEpic(int epicId) {
-        if (epicMap.containsKey(epicId)) {
-            return epicMap.get(epicId);
-        }
-        return null;
+        return epicMap.get(epicId);
     }
 
 
     public int addNewTask(Task task) {
         int taskId = nextId();
         task.setId(taskId);
-        taskMap.putIfAbsent(taskId, task);
+        taskMap.put(taskId, task);
         return taskId;
     }
 
     public int addNewEpic(Epic epic) {
         int taskId = nextId();
         epic.setId(taskId);
-        epicMap.putIfAbsent(taskId, epic);
+        epicMap.put(taskId, epic);
         return taskId;
     }
 
     public int addNewSubtask(Subtask subtask) {
         int taskId = nextId();
         subtask.setId(taskId);
-        subtaskMap.putIfAbsent(taskId, subtask);
+        subtaskMap.put(taskId, subtask);
         return taskId;
     }
 
