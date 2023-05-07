@@ -215,7 +215,7 @@ public class Manager {
             Epic epicForSubtask = getEpic(epicId);
             if (epicForSubtask != null) {
                 epicForSubtask.getSubtaskArray().remove(subtask);
-                String newEpicStatus = calcEpicStatus(null);
+                String newEpicStatus = calcEpicStatus(epicForSubtask);
                 if (!(epicForSubtask.getStatus().equals(newEpicStatus))) {
                     epicForSubtask.setStatus(newEpicStatus);
                 }
