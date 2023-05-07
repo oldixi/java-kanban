@@ -44,54 +44,29 @@ public class Manager {
     }
 
     public ArrayList<Subtask> getEpicSubtasks(int epicId) {
-        try {
-            if (epicMap.containsKey(epicId)) {
-                return epicMap.get(epicId).getSubtaskArray();
-            } else {
-                System.out.println("Не найдены подзадачи с указанным идентификатором эпик-задачи.");
-            }
-        }
-        catch (NullPointerException npe) {
-            System.out.println("Список задач пуст.");
+        if (epicMap.containsKey(epicId)) {
+            return epicMap.get(epicId).getSubtaskArray();
         }
         return null;
     }
 
     public Task getTask(int taskId) {
-        try {
-            if (!taskMap.containsKey(taskId)) {
-                throw new NullPointerException();
-            }
+        if (taskMap.containsKey(taskId)) {
             return taskMap.get(taskId);
-        }
-        catch (NullPointerException npe) {
-            System.out.println("Не найдена задача с указанным идентификатором.");
         }
         return null;
     }
 
     public Subtask getSubtask(int subtaskId) {
-        try {
-            if (!subtaskMap.containsKey(subtaskId)) {
-                throw new NullPointerException();
-            }
+        if (subtaskMap.containsKey(subtaskId)) {
             return subtaskMap.get(subtaskId);
-        }
-        catch (NullPointerException npe) {
-            System.out.println("Не найдена задача с указанным идентификатором.");
         }
         return null;
     }
 
     public Epic getEpic(int epicId) {
-        try {
-            if (!epicMap.containsKey(epicId)) {
-                throw new NullPointerException();
-            }
+        if (epicMap.containsKey(epicId)) {
             return epicMap.get(epicId);
-        }
-        catch (NullPointerException npe) {
-            System.out.println("Не найдена задача с указанным идентификатором.");
         }
         return null;
     }
@@ -129,9 +104,7 @@ public class Manager {
         int epicId = epic.getId();
         Epic epicFromMap = getEpic(epicId);
         if (epicFromMap != null) {
-            if (!epic.getStatus().equals(epicFromMap.getStatus())) {
-                System.out.println("Невозможно изменить статус эпик-задачи без учета статуса подзадач.");
-            } else {
+            if (epic.getStatus().equals(epicFromMap.getStatus())) {
                 epicMap.replace(epicId, epic);
             }
         }
@@ -177,9 +150,7 @@ public class Manager {
                             isOnlyNew = false;
                             break;
                         default:
-                            isOnlyDone = false;
-                            isOnlyNew = false;
-                            break;
+                            return status;
                     }
                 }
             }
