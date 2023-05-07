@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class Main {
 
     public static void main(String[] args) {
-        ManagerForInterface manager = new ManagerForInterface();
+        Manager manager = new Manager();
 
         Task task1 = new Task("Скачивание проекта из репозитория"
                              ,"По пришедшему на почту приглашению клонируйте проект на локальный компьютер");
