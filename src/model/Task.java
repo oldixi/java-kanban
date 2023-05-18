@@ -3,18 +3,24 @@ package model;
 import java.util.Objects;
 
 public class Task {
+    public enum TaskStatus {
+        NEW,
+        IN_PROGRESS,
+        DONE
+    }
+
     protected int id;
     protected String name;
     protected String dsc;
-    protected String status;
+    protected TaskStatus status;
 
     public Task(String name, String dsc) {
         this.name = name;
         this.dsc = dsc;
-        this.status = "NEW";
+        this.status = TaskStatus.NEW;
     }
 
-    public Task(String name, String dsc, String status) {
+    public Task(String name, String dsc, TaskStatus status) {
         this(name, dsc);
         this.status = status;
     }
@@ -24,8 +30,10 @@ public class Task {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
         Task task = (Task) obj;
-        return Objects.equals(name, task.name) && Objects.equals(dsc, task.dsc) && Objects.equals(status, task.status)
-            && Objects.equals(id, task.id);
+        return Objects.equals(name, task.name)
+                && Objects.equals(dsc, task.dsc)
+                && Objects.equals(status, task.status)
+                && Objects.equals(id, task.id);
     }
 
     @Override
@@ -37,7 +45,7 @@ public class Task {
         return name;
     }
 
-    public void setName(String name) {
+    protected void setName(String name) {
         this.name = name;
     }
 
@@ -45,15 +53,15 @@ public class Task {
         return dsc;
     }
 
-    public void setDsc(String dsc) {
+    protected void setDsc(String dsc) {
         this.dsc = dsc;
     }
 
-    public String getStatus() {
+    public TaskStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(TaskStatus status) {
         this.status = status;
     }
 

@@ -5,7 +5,7 @@ import java.util.Objects;
 public class Subtask extends Task {
     protected Integer epicId;
 
-    public Subtask(String name, String dsc, String status, int epicId) {
+    public Subtask(String name, String dsc, TaskStatus status, int epicId) {
         super(name, dsc, status);
         this.epicId = epicId;
     }
@@ -34,10 +34,7 @@ public class Subtask extends Task {
 
     @Override
     public boolean equals(Object obj) {
-        if (super.equals(obj)) {
-            Subtask subtask = (Subtask) obj;
-            return Objects.equals(epicId, subtask.epicId);
-        }
-        return false;
+        Subtask subtask = (Subtask) obj;
+        return super.equals(obj) && Objects.equals(epicId, subtask.epicId);
     }
 }
