@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class InMemoryTaskManager implements TaskManager {
-    private HashMap<Integer, Task> taskMap;
-    private HashMap<Integer, Epic> epicMap;
-    private HashMap<Integer, Subtask> subtaskMap;
+    private final HashMap<Integer, Task> taskMap;
+    private final HashMap<Integer, Epic> epicMap;
+    private final HashMap<Integer, Subtask> subtaskMap;
 
-    public HistoryManager historyManager = Managers.getDefaultHistory();
+    private final HistoryManager historyManager;
 
     private int tasksId;
 
@@ -17,6 +17,7 @@ public class InMemoryTaskManager implements TaskManager {
         taskMap = new HashMap<>();
         epicMap = new HashMap<>();
         subtaskMap = new HashMap<>();
+        historyManager = Managers.getDefaultHistory();
         tasksId = 0;
     }
 
