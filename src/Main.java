@@ -7,43 +7,46 @@ public class Main {
 
     public static void main(String[] args) {
         TaskManager inMemoryTaskManager = Managers.getDefault();
-        HistoryManager inMemoryHistoryManager = Managers.getDefaultHistory();
+        HistoryManager inMemoryHistoryManager = inMemoryTaskManager.getHistoryManager();
 
-        Task task1 = new Task("Скачивание проекта из репозитория"
+        Task task1 = new Task("T Скачивание проекта из репозитория"
                              ,"По пришедшему на почту приглашению клонируйте проект на локальный компьютер"
                              ,Task.TaskStatus.NEW);
-        Task task2 = new Task("Загрузка проекта в репозиторий"
+        Task task2 = new Task("T Загрузка проекта в репозиторий"
                              ,"Запуште проект в репозиторий после коммита", Task.TaskStatus.DONE);
+        Task task3 = new Task("T Загрузка проекта в репозиторий3"
+                ,"Запуште проект в репозиторий после коммита3", Task.TaskStatus.DONE);
 
         int taskId1 = inMemoryTaskManager.addNewTask (task1);
         int taskId2 = inMemoryTaskManager.addNewTask (task2);
-        for (Task task : inMemoryTaskManager.getTasks()) {
+        int taskId3 = inMemoryTaskManager.addNewTask (task3);
+/*        for (Task task : inMemoryTaskManager.getTasks()) {
             System.out.println(task.getId());;
-        }
+        }*/
 
         ArrayList<Subtask> subtasks1 = new ArrayList<>();
         ArrayList<Subtask> subtasks2 = new ArrayList<>();
-        Epic epic1 = new Epic("Проектирование проекта ФП-3", "Спроектируйте проект согласно ТЗ к ФП-3", subtasks2);
-        Epic epic2 = new Epic("Разработка проекта ФП-3", "Разработайте проект согласно ТЗ к ФП-3", subtasks1);
+        Epic epic1 = new Epic("E Проектирование проекта ФП-3", "Спроектируйте проект согласно ТЗ к ФП-3", subtasks2);
+        Epic epic2 = new Epic("E Разработка проекта ФП-3", "Разработайте проект согласно ТЗ к ФП-3", subtasks1);
 
         int epicId2 = inMemoryTaskManager.addNewEpic(epic1);
         int epicId1 = inMemoryTaskManager.addNewEpic(epic2);
 
-        Subtask subtask1 = new Subtask("Разработка системы хранения задач"
+        Subtask subtask1 = new Subtask("S Разработка системы хранения задач"
                 ,"Реализуйте классы и коллекции хранения задач", Task.TaskStatus.NEW, epicId2);
-        Subtask subtask2 = new Subtask("Разработка логики управления задачами"
+        Subtask subtask2 = new Subtask("S Разработка логики управления задачами"
                 ,"Реализуйте методы управления задачами", Task.TaskStatus.NEW, epicId2);
-        Subtask subtask3 = new Subtask("Проектирование модели ситемы"
+        Subtask subtask3 = new Subtask("S Проектирование модели ситемы"
                 ,"Спроектируйте модель системы", Task.TaskStatus.NEW, epicId1);
-        Subtask subtask4 = new Subtask("Проектирование модели ситемы2"
+        Subtask subtask4 = new Subtask("S Проектирование модели ситемы2"
                 ,"Спроектируйте модель системы2", Task.TaskStatus.NEW, epicId1);
-        Subtask subtask5 = new Subtask("Проектирование модели ситемы3"
+        Subtask subtask5 = new Subtask("S Проектирование модели ситемы3"
                 ,"Спроектируйте модель системы3", Task.TaskStatus.NEW, epicId1);
-        Subtask subtask6 = new Subtask("Проектирование модели ситемы4"
+        Subtask subtask6 = new Subtask("S Проектирование модели ситемы4"
                 ,"Спроектируйте модель системы4", Task.TaskStatus.NEW, epicId1);
 
         boolean isEqualsSubtasks = subtask3.equals(subtask4);
-        System.out.println(isEqualsSubtasks);
+        //System.out.println(isEqualsSubtasks);
 
         int subtaskId1 = inMemoryTaskManager.addNewSubtask(subtask1);
         int subtaskId2 = inMemoryTaskManager.addNewSubtask(subtask2);
@@ -64,29 +67,40 @@ public class Main {
         inMemoryTaskManager.updateSubtask(subtask6);
 
         ArrayList<Subtask> subtasks = inMemoryTaskManager.getEpicSubtasks(epicId2);
-        if (subtasks != null) {
+/*        if (subtasks != null) {
             for (Subtask subtask : subtasks) {
                 System.out.println(subtask.getId());
             }
-        }
+        }*/
 
         inMemoryTaskManager.getTask(taskId1);
         inMemoryTaskManager.getTask(taskId2);
-        inMemoryTaskManager.getEpic(epicId1);
+        inMemoryTaskManager.getTask(taskId3);
         inMemoryTaskManager.getEpic(epicId2);
-        inMemoryTaskManager.getSubtask(subtaskId1);
-        inMemoryTaskManager.getSubtask(subtaskId2);
         inMemoryTaskManager.getSubtask(subtaskId3);
         inMemoryTaskManager.getSubtask(subtaskId4);
         inMemoryTaskManager.getSubtask(subtaskId5);
         inMemoryTaskManager.getSubtask(subtaskId6);
-        inMemoryTaskManager.getTask(taskId1);
-        inMemoryTaskManager.getEpic(epicId1);
 
         List<Task> taskList = inMemoryHistoryManager.getHistory();
         int task_id = 0;
         String task_name = "";
         Task.TaskStatus task_status;
+        for (Task task : taskList) {
+            task_id = task.getId();
+            task_name = task.getName();
+            task_status = task.getStatus();
+            System.out.printf("\nЗадача %s: %s. Задача в статусе %s", task_id, task_name, String.valueOf(task_status));
+        }
+        System.out.println("\n-----------------------------------------");
+        inMemoryTaskManager.getTask(taskId1);
+        inMemoryTaskManager.deleteTask(taskId1);
+        inMemoryTaskManager.deleteTask(taskId1);
+        inMemoryTaskManager.deleteSubtask(subtaskId6);
+        inMemoryTaskManager.getTask(taskId1);
+        inMemoryTaskManager.deleteEpic(epicId2);
+
+        taskList = inMemoryHistoryManager.getHistory();
         for (Task task : taskList) {
             task_id = task.getId();
             task_name = task.getName();

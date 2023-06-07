@@ -34,7 +34,13 @@ public class Subtask extends Task {
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
         Subtask subtask = (Subtask) obj;
-        return super.equals(obj) && Objects.equals(epicId, subtask.epicId);
+        return Objects.equals(name, subtask.name)
+                && Objects.equals(dsc, subtask.dsc)
+                && Objects.equals(status, subtask.status)
+                && Objects.equals(id, subtask.id)
+                && Objects.equals(epicId, subtask.epicId);
     }
 }

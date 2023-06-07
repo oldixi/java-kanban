@@ -30,4 +30,6 @@ public interface TaskManager {
     public void deleteTasks();
     public void deleteSubtasks();
     public void deleteEpics();
+
+    public HistoryManager getHistoryManager();
 }
