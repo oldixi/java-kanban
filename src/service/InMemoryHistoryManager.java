@@ -76,9 +76,6 @@ public class InMemoryHistoryManager implements HistoryManager {
             taskInHistoryMap.remove(id);
             customTasksHistoryList.removeNode(node);
 
-            System.out.println("\nid = " + id + ", node = " + node + ", node.prev = " + node.prev + ", node.next = " + node.next +
-                    ", prevNode = " + prevNode + ", nextNode = " + nextNode);
-
             if (nextNode != null) {
                 taskInHistoryMap.put(nextNode.task.getId(), node.next);
             }

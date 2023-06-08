@@ -38,8 +38,7 @@ public class Task {
 
     @Override
     public String toString() {
-        //return "\nЗадача №" + id + ". " + name + '\n' + dsc + '\n' + "Статус задачи: " + status;
-        return "Задача №" + id;
+        return "\nЗадача №" + id + ". " + name + '\n' + dsc + '\n' + "Статус задачи: " + status;
     }
 
     public String getName() {

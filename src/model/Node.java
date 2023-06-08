@@ -13,9 +13,4 @@ public class Node<Task> {
 
     public Node() {
     }
-
-/*    @Override
-    public String toString() {
-        return getClass().getName() + "@" + Integer.toHexString(hashCode()) + ": Ссылка prev = " + prev + ". Ссылка next = " + next;
-    }*/
 }

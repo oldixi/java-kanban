@@ -66,7 +66,7 @@ public class Main {
         subtask6.setStatus(Task.TaskStatus.IN_PROGRESS);
         inMemoryTaskManager.updateSubtask(subtask6);
 
-        ArrayList<Subtask> subtasks = inMemoryTaskManager.getEpicSubtasks(epicId2);
+        List<Subtask> subtasks = inMemoryTaskManager.getEpicSubtasks(epicId2);
 /*        if (subtasks != null) {
             for (Subtask subtask : subtasks) {
                 System.out.println(subtask.getId());
