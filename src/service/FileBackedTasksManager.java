@@ -42,7 +42,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         }
     }
 
-    public void save() throws ManagerSaveException {
+    private void save() throws ManagerSaveException {
         try (Writer fileWriter = new FileWriter(path.getFileName().toString())) {
             if (!Files.exists(path)) {
                 Path file = Files.createFile(path);
@@ -122,7 +122,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         return fileBackedTasksManager;
     }
 
-    public String toString(Task task) {
+    private String toString(Task task) {
         String className = task.getClass().toString().toUpperCase()
                                .replace("CLASS","").replace(" MODEL.", "");
         StringBuilder taskString = new StringBuilder()
@@ -143,7 +143,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         return taskString.toString();
     }
 
-    public Task fromString(String value) {
+    private Task fromString(String value) {
         String[] elements = new String[5];
         elements = value.split(",");
         int id = Integer.parseInt(elements[0]);
@@ -178,7 +178,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         return task;
     }
 
-    public static String historyToString(HistoryManager manager) {
+    private static String historyToString(HistoryManager manager) {
         List<Task> taskList = manager.getHistory();
         List<String> taskIdList = new ArrayList<>();
         taskList.forEach((v) -> {
@@ -187,7 +187,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         return String.join(",",taskIdList.toArray(new String[]{}));
     }
 
-    public static List<Integer> historyFromString(String value) {
+    private static List<Integer> historyFromString(String value) {
         String[] elements = value.split(",");
         List<Integer> historyFromStringList = new ArrayList<>();
         for (String element : elements) {

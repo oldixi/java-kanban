@@ -2,10 +2,6 @@ package service;
 
 public class Managers {
 
-/*    public static TaskManager getDefault() {
-        return (new InMemoryTaskManager());
-    }*/
-
     public static TaskManager getDefault() {
         return (new FileBackedTasksManager(FileBackedTasksManager.FILEPATH));
     }

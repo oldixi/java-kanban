@@ -21,11 +21,6 @@ public class Main {
         int taskId2 = inMemoryTaskManager.addNewTask(task2);
         int taskId3 = inMemoryTaskManager.addNewTask(task3);
 
-/*        for (Task task : inMemoryTaskManager.getTasks()) {
-            System.out.println(task.getId());;
-        }*/
-
-
         ArrayList<Subtask> subtasks1 = new ArrayList<>();
         ArrayList<Subtask> subtasks2 = new ArrayList<>();
         Epic epic1 = new Epic("E Проектирование проекта ФП-3", "Спроектируйте проект согласно ТЗ к ФП-3", subtasks2);
@@ -70,11 +65,6 @@ public class Main {
 
         List<Subtask> subtasks = inMemoryTaskManager.getEpicSubtasks(epicId2);
 
-/*        if (subtasks != null) {
-            for (Subtask subtask : subtasks) {
-                System.out.println(subtask.getId());
-            }
-        }*/
         inMemoryTaskManager.getTask(taskId1);
         inMemoryTaskManager.getTask(taskId2);
         inMemoryTaskManager.getTask(taskId3);
@@ -96,13 +86,6 @@ public class Main {
         }
         System.out.println("\n-----------------------------------------");
         inMemoryTaskManager.getTask(taskId1);
-/*        inMemoryTaskManager.deleteTask(taskId1);
-        inMemoryTaskManager.deleteTask(taskId1);
-        inMemoryTaskManager.deleteSubtask(subtaskId6);
-        inMemoryTaskManager.getTask(taskId1);
-        inMemoryTaskManager.deleteEpic(epicId2);
-        inMemoryTaskManager.getTask(taskId1);*/
-
         taskList = inMemoryHistoryManager.getHistory();
         for (Task task : taskList) {
             task_id = task.getId();
