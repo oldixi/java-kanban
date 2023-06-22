@@ -25,6 +25,10 @@ public class Task {
         this.status = status;
     }
 
+    public Task() {
+        this.status = TaskStatus.NEW;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;

@@ -17,12 +17,14 @@ public class Main {
         Task task3 = new Task("T Загрузка проекта в репозиторий3"
                 ,"Запуште проект в репозиторий после коммита3", Task.TaskStatus.DONE);
 
-        int taskId1 = inMemoryTaskManager.addNewTask (task1);
-        int taskId2 = inMemoryTaskManager.addNewTask (task2);
-        int taskId3 = inMemoryTaskManager.addNewTask (task3);
+        int taskId1 = inMemoryTaskManager.addNewTask(task1);
+        int taskId2 = inMemoryTaskManager.addNewTask(task2);
+        int taskId3 = inMemoryTaskManager.addNewTask(task3);
+
 /*        for (Task task : inMemoryTaskManager.getTasks()) {
             System.out.println(task.getId());;
         }*/
+
 
         ArrayList<Subtask> subtasks1 = new ArrayList<>();
         ArrayList<Subtask> subtasks2 = new ArrayList<>();
@@ -67,12 +69,12 @@ public class Main {
         inMemoryTaskManager.updateSubtask(subtask6);
 
         List<Subtask> subtasks = inMemoryTaskManager.getEpicSubtasks(epicId2);
+
 /*        if (subtasks != null) {
             for (Subtask subtask : subtasks) {
                 System.out.println(subtask.getId());
             }
         }*/
-
         inMemoryTaskManager.getTask(taskId1);
         inMemoryTaskManager.getTask(taskId2);
         inMemoryTaskManager.getTask(taskId3);
@@ -90,22 +92,23 @@ public class Main {
             task_id = task.getId();
             task_name = task.getName();
             task_status = task.getStatus();
-            System.out.printf("\nЗадача %s: %s. Задача в статусе %s", task_id, task_name, String.valueOf(task_status));
+            System.out.printf("\nЗадача %d: %s. Задача в статусе %s", task_id, task_name, String.valueOf(task_status));
         }
         System.out.println("\n-----------------------------------------");
         inMemoryTaskManager.getTask(taskId1);
-        inMemoryTaskManager.deleteTask(taskId1);
+/*        inMemoryTaskManager.deleteTask(taskId1);
         inMemoryTaskManager.deleteTask(taskId1);
         inMemoryTaskManager.deleteSubtask(subtaskId6);
         inMemoryTaskManager.getTask(taskId1);
         inMemoryTaskManager.deleteEpic(epicId2);
+        inMemoryTaskManager.getTask(taskId1);*/
 
         taskList = inMemoryHistoryManager.getHistory();
         for (Task task : taskList) {
             task_id = task.getId();
             task_name = task.getName();
             task_status = task.getStatus();
-            System.out.printf("\nЗадача %s: %s. Задача в статусе %s", task_id, task_name, String.valueOf(task_status));
+            System.out.printf("\nЗадача %d: %s. Задача в статусе %s", task_id, task_name, String.valueOf(task_status));
         }
 
     }
