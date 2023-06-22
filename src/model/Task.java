@@ -3,11 +3,6 @@ package model;
 import java.util.Objects;
 
 public class Task {
-    public enum TaskStatus {
-        NEW,
-        IN_PROGRESS,
-        DONE
-    }
 
     protected int id;
     protected String name;
@@ -76,5 +71,4 @@ public class Task {
     public void setId(int id) {
         this.id = id;
     }
-
 }

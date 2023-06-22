@@ -26,12 +26,12 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         TaskManager manager = FileBackedTasksManager.loadFromFile(FILEPATH);
 
         Task task1 = new Task("T Загрузка проекта в репозиторий22"
-                , "Запуште проект в репозиторий после коммита22", Task.TaskStatus.NEW);
+                , "Запуште проект в репозиторий после коммита22", TaskStatus.NEW);
         int taskId = manager.addNewTask(task1);
 
         int task_id = 0;
         String task_name = "";
-        Task.TaskStatus task_status;
+        TaskStatus task_status;
         manager.getTask(taskId);
         List<Task> taskList = manager.getHistoryManager().getHistory();
         for (Task task : taskList) {
@@ -149,7 +149,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         int id = Integer.parseInt(elements[0]);
         TaskType taskType = TaskType.valueOf(elements[1]);
         String taskName = elements[2];
-        Task.TaskStatus taskStatus = Task.TaskStatus.valueOf(elements[3]);
+        TaskStatus taskStatus = TaskStatus.valueOf(elements[3]);
         String taskDsc = elements[4];
         int epicId = 0;
         if (!elements[5].isBlank()) {

@@ -11,11 +11,11 @@ public class Main {
 
         Task task1 = new Task("T Скачивание проекта из репозитория"
                              ,"По пришедшему на почту приглашению клонируйте проект на локальный компьютер"
-                             ,Task.TaskStatus.NEW);
+                             ,TaskStatus.NEW);
         Task task2 = new Task("T Загрузка проекта в репозиторий"
-                             ,"Запуште проект в репозиторий после коммита", Task.TaskStatus.DONE);
+                             ,"Запуште проект в репозиторий после коммита", TaskStatus.DONE);
         Task task3 = new Task("T Загрузка проекта в репозиторий3"
-                ,"Запуште проект в репозиторий после коммита3", Task.TaskStatus.DONE);
+                ,"Запуште проект в репозиторий после коммита3", TaskStatus.DONE);
 
         int taskId1 = inMemoryTaskManager.addNewTask(task1);
         int taskId2 = inMemoryTaskManager.addNewTask(task2);
@@ -30,17 +30,17 @@ public class Main {
         int epicId1 = inMemoryTaskManager.addNewEpic(epic2);
 
         Subtask subtask1 = new Subtask("S Разработка системы хранения задач"
-                ,"Реализуйте классы и коллекции хранения задач", Task.TaskStatus.NEW, epicId2);
+                ,"Реализуйте классы и коллекции хранения задач", TaskStatus.NEW, epicId2);
         Subtask subtask2 = new Subtask("S Разработка логики управления задачами"
-                ,"Реализуйте методы управления задачами", Task.TaskStatus.NEW, epicId2);
+                ,"Реализуйте методы управления задачами", TaskStatus.NEW, epicId2);
         Subtask subtask3 = new Subtask("S Проектирование модели ситемы"
-                ,"Спроектируйте модель системы", Task.TaskStatus.NEW, epicId1);
+                ,"Спроектируйте модель системы", TaskStatus.NEW, epicId1);
         Subtask subtask4 = new Subtask("S Проектирование модели ситемы2"
-                ,"Спроектируйте модель системы2", Task.TaskStatus.NEW, epicId1);
+                ,"Спроектируйте модель системы2", TaskStatus.NEW, epicId1);
         Subtask subtask5 = new Subtask("S Проектирование модели ситемы3"
-                ,"Спроектируйте модель системы3", Task.TaskStatus.NEW, epicId1);
+                ,"Спроектируйте модель системы3", TaskStatus.NEW, epicId1);
         Subtask subtask6 = new Subtask("S Проектирование модели ситемы4"
-                ,"Спроектируйте модель системы4", Task.TaskStatus.NEW, epicId1);
+                ,"Спроектируйте модель системы4", TaskStatus.NEW, epicId1);
 
         boolean isEqualsSubtasks = subtask3.equals(subtask4);
         //System.out.println(isEqualsSubtasks);
@@ -60,7 +60,7 @@ public class Main {
 
         epic1.setSubtaskArray(subtasks2);
         inMemoryTaskManager.updateEpic(epic1);
-        subtask6.setStatus(Task.TaskStatus.IN_PROGRESS);
+        subtask6.setStatus(TaskStatus.IN_PROGRESS);
         inMemoryTaskManager.updateSubtask(subtask6);
 
         List<Subtask> subtasks = inMemoryTaskManager.getEpicSubtasks(epicId2);
@@ -77,7 +77,7 @@ public class Main {
         List<Task> taskList = inMemoryHistoryManager.getHistory();
         int task_id = 0;
         String task_name = "";
-        Task.TaskStatus task_status;
+        TaskStatus task_status;
         for (Task task : taskList) {
             task_id = task.getId();
             task_name = task.getName();
