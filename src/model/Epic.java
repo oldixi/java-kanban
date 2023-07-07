@@ -1,18 +1,28 @@
 package model;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class Epic extends Task {
     protected ArrayList<Subtask> subtaskArray;
+    private LocalDateTime endTime;
 
     public Epic(String name, String dsc, ArrayList<Subtask> subtaskArray) {
         super(name, dsc, TaskStatus.NEW);
-        this.subtaskArray = new ArrayList<Subtask>();
+        this.subtaskArray = subtaskArray;
+        startTime = null;
+        endTime = null;
+        duration = 0;
     }
 
     public Epic(String name, String dsc) {
         super(name, dsc, TaskStatus.NEW);
+        subtaskArray = new ArrayList<>();
+        startTime = null;
+        endTime = null;
+        duration = 0;
     }
 
     public TaskStatus getStatus() {
@@ -21,6 +31,10 @@ public class Epic extends Task {
 
     public void setStatus(TaskStatus status) {
         super.setStatus(status);
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
     }
 
     public ArrayList<Subtask> getSubtaskArray() {
@@ -33,7 +47,14 @@ public class Epic extends Task {
 
     @Override
     public String toString() {
-        return "\nЗадача №" + id + ". " + name + '\n' + dsc + '\n' + "Статус задачи: " + status + '\n' + "Подзадачи: ";
+        String subtaskStr = "Нет подзадач";
+        if (!subtaskArray.isEmpty()) {
+            subtaskStr = String.valueOf(subtaskArray.stream()
+                    .map(v -> v.getId())
+                    .collect(Collectors.toList()));
+        }
+        return "\nЗадача №" + id + ". " + name + '\n' + dsc + '\n' + "Статус задачи: "
+                + status + '\n' + "Подзадачи: " + subtaskStr;
     }
 
     @Override
@@ -46,5 +67,18 @@ public class Epic extends Task {
                 && Objects.equals(status, epic.status)
                 && Objects.equals(id, epic.id)
                 && Objects.equals(subtaskArray, epic.subtaskArray);
+    }
+
+    @Override
+    public Epic clone() {
+        Epic epicClone = new Epic(new String(name), new String(dsc), new ArrayList<>(subtaskArray));
+        epicClone.setId(getId());
+        epicClone.setStatus(getStatus());
+        return epicClone;
+    }
+
+    @Override
+    public LocalDateTime getEndTime() {
+        return endTime;
     }
 }

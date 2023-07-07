@@ -1,5 +1,7 @@
 package model;
 
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class Subtask extends Task {
@@ -8,6 +10,10 @@ public class Subtask extends Task {
     public Subtask(String name, String dsc, TaskStatus status, int epicId) {
         super(name, dsc, status);
         this.epicId = epicId;
+    }
+
+    public Subtask(String name, String dsc, TaskStatus status) {
+        super(name, dsc, status);
     }
 
     public Subtask(String name, String dsc, int epicId) {
@@ -29,7 +35,13 @@ public class Subtask extends Task {
 
     @Override
     public String toString() {
-        return "Подзадача №" + id + ". " + name + '\n' + dsc + '\n' + "Статус задачи: " + status;
+        String startDateStr = "";
+        if (getStartTime() != null) {
+            startDateStr = "Дата с: "
+                    + getStartTime().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
+        }
+        return "\nПодзадача №" + id + ". " + name + '\n' + dsc + '\n' + "Статус задачи: "
+                + status + '\n' + startDateStr;
     }
 
     @Override
@@ -42,5 +54,13 @@ public class Subtask extends Task {
                 && Objects.equals(status, subtask.status)
                 && Objects.equals(id, subtask.id)
                 && Objects.equals(epicId, subtask.epicId);
+    }
+
+    @Override
+    public Subtask clone() {
+        Subtask subtaskClone = new Subtask(new String(name), new String(dsc), epicId);
+        subtaskClone.setId(getId());
+        subtaskClone.setStatus(getStatus());
+        return subtaskClone;
     }
 }
