@@ -15,7 +15,6 @@ import java.util.ArrayList;
 public class FileBackedTasksManager extends InMemoryTaskManager {
     public static final Path FILEPATH = Paths.get(System.getProperty("user.home"), "dev", "java-kanban", "file.csv");
     public static final String TITLE = "id,type,name,status,description,epic,startTime,duration";
-    private static final  String ENTER = "\n";
     private final Path path;
 
     public FileBackedTasksManager(Path path) {
@@ -26,33 +25,33 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     private void save() throws ManagerSaveException {
         try (Writer fileWriter = new FileWriter(path.getFileName().toString())) {
             if (!Files.exists(path)) {
-                Path file = Files.createFile(path);
+                Files.createFile(path);
             }
-            fileWriter.write(TITLE + ENTER);
+            fileWriter.write(TITLE + "\n");
             super.getTasks().forEach((v) -> {
                 try {
-                    fileWriter.write(toString(v) + ENTER);
+                    fileWriter.write(toString(v) + "\n");
                 } catch (IOException e) {
                     throw new ManagerSaveException();
                 }
             });
             super.getEpics().forEach((v) -> {
                 try {
-                    fileWriter.write(toString(v) + ENTER);
+                    fileWriter.write(toString(v) + "\n");
                 } catch (IOException e) {
                     throw new ManagerSaveException();
                 }
             });
             super.getSubtasks().forEach((v) -> {
                 try {
-                    fileWriter.write(toString(v) + ENTER);
+                    fileWriter.write(toString(v) + "\n");
                 } catch (IOException e) {
                     throw new ManagerSaveException();
                 }
             });
             String historyStr = historyToString(super.getHistoryManager());
             if (!historyStr.isBlank()) {
-                fileWriter.write(ENTER + historyStr);
+                fileWriter.write("\n" + historyStr);
             }
         } catch (IOException ioe) {
             throw new ManagerSaveException();
@@ -80,7 +79,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                     dataLinesIndex = linesArray.length - 2;
                 }
                 for (int i = 0; i <= dataLinesIndex; i++) {
-                    Task taskFromFile = fileBackedTasksManager.fromString(linesArray[i]);
+                    fileBackedTasksManager.fromString(linesArray[i]);
                 }
                 for (int taskIdFromHistory : historyList) {
                     Task taskFromHistory = new Task();
@@ -97,6 +96,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                 }
             }
         } catch (IOException ioe) {
+            throw new ManagerSaveException();
         }
         return fileBackedTasksManager;
     }
@@ -192,7 +192,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         String[] elements = value.split(",");
         List<Integer> historyFromStringList = new ArrayList<>();
         for (String element : elements) {
-            int intElement = Integer.valueOf(element);
+            int intElement = Integer.parseInt(element);
             historyFromStringList.add(intElement);
         }
         return historyFromStringList;
@@ -292,10 +292,5 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         Epic epic = super.getEpic(epicId);
         save();
         return epic;
-    }
-
-    private class ManagerSaveException extends RuntimeException {
-        public ManagerSaveException() {
-        }
     }
 }
