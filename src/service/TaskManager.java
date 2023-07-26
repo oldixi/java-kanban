@@ -2,6 +2,7 @@ package service;
 
 import model.*;
 import java.util.List;
+import java.util.Set;
 
 public interface TaskManager {
      List<Task> getTasks();
@@ -31,4 +32,6 @@ public interface TaskManager {
      void deleteEpics();
 
      HistoryManager getHistoryManager();
+
+     Set<Task> getPrioritizedTasks();
 }

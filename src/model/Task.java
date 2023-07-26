@@ -82,7 +82,7 @@ public class Task implements Comparable<Task> {
         return name;
     }
 
-    protected void setName(String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
@@ -90,7 +90,7 @@ public class Task implements Comparable<Task> {
         return dsc;
     }
 
-    protected void setDsc(String dsc) {
+    public void setDsc(String dsc) {
         this.dsc = dsc;
     }
 

@@ -1,0 +1,5 @@
+id,type,name,status,description,epic,startTime,duration
+1,EPIC,Эпик5,NEW,Выполнить Эпик5, , , ,
+2,SUBTASK,Подзадача9,NEW,Выполнить подзадачу 9,1, , ,
+
+2

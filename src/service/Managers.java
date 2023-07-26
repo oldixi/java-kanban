@@ -3,7 +3,7 @@ package service;
 public class Managers {
 
     public static TaskManager getDefault() {
-        return (new FileBackedTasksManager(FileBackedTasksManager.FILEPATH));
+        return (new HttpTaskManager(HttpTaskManager.URL));
     }
 
     public static HistoryManager getDefaultHistory() {

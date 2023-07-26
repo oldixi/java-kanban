@@ -12,11 +12,12 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-//abstract class TaskManagerTest<T extends TaskManager>{
 public class TaskManagerTest<T extends TaskManager> {
     private static final String TASK_NOT_FOUND = "Задача не найдена.";
     private static final String TASKS_NOT_EQUAL = "Задачи не совпадают.";
@@ -47,8 +48,8 @@ public class TaskManagerTest<T extends TaskManager> {
     private static final String TASK_CROSSED = "Задача пересекается с другими задачами: дата начала работ должна быть скринута.";
 
     InMemoryTaskManager inMemoryTaskManager = new InMemoryTaskManager();
-    FileBackedTasksManager fileBackedTasksManager = new FileBackedTasksManager(FileBackedTasksManager.FILEPATH);
-    TaskManager taskManager = Managers.getDefault();
+    TaskManager taskFileManager = new FileBackedTasksManager(FileBackedTasksManager.FILEPATH);
+    HttpTaskManager taskServerManager;
 
     Task task1 = new Task("Задача1", "Выполнить задачу 1", TaskStatus.NEW,10, LocalDateTime.now().minusDays(60));
     Task task2 = new Task("Задача2", "Выполнить задачу 2");
@@ -109,11 +110,27 @@ public class TaskManagerTest<T extends TaskManager> {
     Epic epicStrt = new Epic("ЭпикStrt", "Выполнить ЭпикStrt", subtasksStrt);
     Epic epicNull = new Epic("ЭпикNull", "Выполнить ЭпикNull", subtasksNull);
 
+    static KVServer server;
+
+    @BeforeEach
+    public void startKVServer() {
+        try {
+            if (server != null) {
+                server.stop();
+            }
+            server = new KVServer();
+            server.start();
+            taskServerManager = new HttpTaskManager(HttpTaskManager.URL);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Test
     public void shouldAddNewTask() {
-        final int taskId = taskManager.addNewTask(task1);
-        final Task savedTask = taskManager.getTask(taskId);
-        final List<Task> tasks = taskManager.getTasks();
+        final int taskId = taskServerManager.addNewTask(task1);
+        final Task savedTask = taskServerManager.getTask(taskId);
+        final List<Task> tasks = taskServerManager.getTasks();
 
         assertNotNull(savedTask, TASK_NOT_FOUND);
         assertEquals(task1, savedTask, TASKS_NOT_EQUAL);
@@ -124,9 +141,9 @@ public class TaskManagerTest<T extends TaskManager> {
 
     @Test
     public void shouldAddNewEpic() {
-        final int taskId = taskManager.addNewEpic(epic1);
-        final Epic savedTask = taskManager.getEpic(taskId);
-        final List<Epic> tasks = taskManager.getEpics();
+        final int taskId = taskServerManager.addNewEpic(epic1);
+        final Epic savedTask = taskServerManager.getEpic(taskId);
+        final List<Epic> tasks = taskServerManager.getEpics();
 
         assertNotNull(savedTask, TASK_NOT_FOUND);
         assertEquals(epic1, savedTask, TASKS_NOT_EQUAL);
@@ -137,11 +154,11 @@ public class TaskManagerTest<T extends TaskManager> {
 
     @Test
     public void shouldAddNewSubtask() {
-        final int epicId = taskManager.addNewEpic(epic1);
+        final int epicId = taskServerManager.addNewEpic(epic1);
         subtask1.setEpicId(epicId);
-        final int taskId = taskManager.addNewSubtask(subtask1);
-        final Subtask savedTask = taskManager.getSubtask(taskId);
-        final List<Subtask> tasks = taskManager.getSubtasks();
+        final int taskId = taskServerManager.addNewSubtask(subtask1);
+        final Subtask savedTask = taskServerManager.getSubtask(taskId);
+        final List<Subtask> tasks = taskServerManager.getSubtasks();
 
         assertNotNull(savedTask, TASK_NOT_FOUND);
         assertEquals(subtask1, savedTask, TASKS_NOT_EQUAL);
@@ -152,100 +169,100 @@ public class TaskManagerTest<T extends TaskManager> {
 
     @Test
     public void shouldUpdateTask() {
-        final int taskId = taskManager.addNewTask(task2);
-        final Task savedTask = taskManager.getTask(taskId);
+        final int taskId = taskServerManager.addNewTask(task2);
+        final Task savedTask = taskServerManager.getTask(taskId);
         final Task taskClone = task2.clone();
         taskClone.setStatus(TaskStatus.IN_PROGRESS);
 
-        taskManager.updateTask(taskClone);
+        taskServerManager.updateTask(taskClone);
 
-        assertNotEquals(savedTask, taskManager.getTask(taskId), TASK_UPDATE_FAIL);
-        assertEquals(taskClone, taskManager.getTask(taskId), TASK_UPDATE_FAIL);
+        assertNotEquals(savedTask, taskServerManager.getTask(taskId), TASK_UPDATE_FAIL);
+        assertEquals(taskClone, taskServerManager.getTask(taskId), TASK_UPDATE_FAIL);
     }
 
     @Test
     public void shouldNotUpdateTaskBadId() {
-        final int taskId = taskManager.addNewTask(task3);
-        final Task savedTask = taskManager.getTask(taskId);
+        final int taskId = taskServerManager.addNewTask(task3);
+        final Task savedTask = taskServerManager.getTask(taskId);
         final Task taskClone = task3.clone();
         taskClone.setId(-1);
 
-        taskManager.updateTask(taskClone);
+        taskServerManager.updateTask(taskClone);
 
-        assertEquals(savedTask, taskManager.getTask(taskId), TASK_UPDATE);
-        assertNotEquals(taskClone, taskManager.getTask(taskId), TASK_UPDATE);
+        assertEquals(savedTask, taskServerManager.getTask(taskId), TASK_UPDATE);
+        assertNotEquals(taskClone, taskServerManager.getTask(taskId), TASK_UPDATE);
     }
 
     @Test
     public void shouldNotUpdateTaskNullId() {
-        final Task savedTask = taskManager.getTask(0);
+        final Task savedTask = taskServerManager.getTask(0);
 
-        taskManager.updateTask(task4);
+        taskServerManager.updateTask(task4);
 
         assertNull(savedTask, TASK_UPDATE_FOR_NULL);
-        assertNotEquals(task4, taskManager.getTask(0), TASK_UPDATE);
+        assertNotEquals(task4, taskServerManager.getTask(0), TASK_UPDATE);
     }
 
     @Test
     public void shouldUpdateSubtaskStatus() {
-        final int epicId = taskManager.addNewEpic(epic1);
+        final int epicId = taskServerManager.addNewEpic(epic1);
         subtask2.setEpicId(epicId);
-        final int taskId = taskManager.addNewSubtask(subtask2);
-        final Subtask savedTask = taskManager.getSubtask(taskId);
+        final int taskId = taskServerManager.addNewSubtask(subtask2);
+        final Subtask savedTask = taskServerManager.getSubtask(taskId);
         final Subtask subtaskClone = subtask2.clone();
         subtaskClone.setStatus(TaskStatus.IN_PROGRESS);
 
-        taskManager.updateSubtask(subtaskClone);
+        taskServerManager.updateSubtask(subtaskClone);
 
-        assertNotEquals(savedTask, taskManager.getSubtask(taskId), TASK_UPDATE_FAIL);
-        assertEquals(subtaskClone, taskManager.getSubtask(taskId), TASK_UPDATE_FAIL);
+        assertNotEquals(savedTask, taskServerManager.getSubtask(taskId), TASK_UPDATE_FAIL);
+        assertEquals(subtaskClone, taskServerManager.getSubtask(taskId), TASK_UPDATE_FAIL);
     }
 
     @Test
     public void shouldUpdateSubtaskEpicId() {
-        final int epicId = taskManager.addNewEpic(epic2);
+        final int epicId = taskServerManager.addNewEpic(epic2);
         subtask3.setEpicId(epicId);
-        final int taskId = taskManager.addNewSubtask(subtask3);
-        final Subtask savedTask = taskManager.getSubtask(taskId);
-        final int epicNewId = taskManager.addNewEpic(epic3);
+        final int taskId = taskServerManager.addNewSubtask(subtask3);
+        final Subtask savedTask = taskServerManager.getSubtask(taskId);
+        final int epicNewId = taskServerManager.addNewEpic(epic3);
         Subtask subtaskClone = subtask3.clone();
         subtaskClone.setEpicId(epicNewId);
 
-        taskManager.updateSubtask(subtaskClone);
+        taskServerManager.updateSubtask(subtaskClone);
 
-        assertNotEquals(savedTask, taskManager.getSubtask(taskId), TASK_UPDATE_FAIL);
-        assertEquals(subtaskClone, taskManager.getSubtask(taskId), TASK_UPDATE_FAIL);
+        assertNotEquals(savedTask, taskServerManager.getSubtask(taskId), TASK_UPDATE_FAIL);
+        assertEquals(subtaskClone, taskServerManager.getSubtask(taskId), TASK_UPDATE_FAIL);
     }
 
     @Test
     public void shouldNotUpdateSubtaskNullId() {
-        final int epicId = taskManager.addNewEpic(epic2);
+        final int epicId = taskServerManager.addNewEpic(epic2);
         subtask3.setEpicId(epicId);
-        final Subtask savedTask = taskManager.getSubtask(0);
+        final Subtask savedTask = taskServerManager.getSubtask(0);
         final Subtask subtaskClone = subtask3.clone();
         subtaskClone.setStatus(TaskStatus.IN_PROGRESS);
-        taskManager.updateSubtask(subtaskClone);
+        taskServerManager.updateSubtask(subtaskClone);
 
         assertNull(savedTask, TASK_UPDATE_FOR_NULL);
-        assertNotEquals(subtaskClone, taskManager.getSubtask(0), TASK_UPDATE);
+        assertNotEquals(subtaskClone, taskServerManager.getSubtask(0), TASK_UPDATE);
     }
 
     @Test
     public void shouldUpdateEpic() {
-        final int epicId = taskManager.addNewEpic(epic3);
-        final Epic savedTask = taskManager.getEpic(epicId);
+        final int epicId = taskServerManager.addNewEpic(epic3);
+        final Epic savedTask = taskServerManager.getEpic(epicId);
         subtask4.setEpicId(epicId);
         subtask5.setEpicId(epicId);
         subtask6.setEpicId(epicId);
-        final int subtask4Id = taskManager.addNewSubtask(subtask4);
-        final int subtask5Id = taskManager.addNewSubtask(subtask5);
-        final int subtask6Id = taskManager.addNewSubtask(subtask6);
+        final int subtask4Id = taskServerManager.addNewSubtask(subtask4);
+        final int subtask5Id = taskServerManager.addNewSubtask(subtask5);
+        final int subtask6Id = taskServerManager.addNewSubtask(subtask6);
         final ArrayList<Subtask> subtaskList = new ArrayList<>(List.of(subtask4, subtask5, subtask6));
         final Epic epicClone = epic3.clone();
         epicClone.setSubtaskArray(subtaskList);
 
-        taskManager.updateEpic(epicClone);
-        final Epic afterUpdateTask = taskManager.getEpic(epicId);
+        taskServerManager.updateEpic(epicClone);
+        final Epic afterUpdateTask = taskServerManager.getEpic(epicId);
 
         assertEquals(List.of(subtask4, subtask5, subtask6), afterUpdateTask.getSubtaskArray(), TASK_LIST_WRONG);
         assertNotEquals(savedTask, afterUpdateTask, TASK_UPDATE_FAIL);
@@ -254,128 +271,128 @@ public class TaskManagerTest<T extends TaskManager> {
 
     @Test
     public void shouldNotUpdateEpicStatus() {
-        final int epicId = taskManager.addNewEpic(epic3);
-        final Epic savedTask = taskManager.getEpic(epicId);
+        final int epicId = taskServerManager.addNewEpic(epic3);
+        final Epic savedTask = taskServerManager.getEpic(epicId);
         final Epic epicClone = epic3.clone();
         epicClone.setStatus(TaskStatus.DONE);
-        taskManager.updateEpic(epicClone);
+        taskServerManager.updateEpic(epicClone);
 
-        assertEquals(savedTask, taskManager.getEpic(epicId), TASK_UPDATE);
-        assertNotEquals(epicClone, taskManager.getEpic(epicId), TASK_UPDATE);
+        assertEquals(savedTask, taskServerManager.getEpic(epicId), TASK_UPDATE);
+        assertNotEquals(epicClone, taskServerManager.getEpic(epicId), TASK_UPDATE);
     }
 
     @Test
     public void shouldDeleteTask() {
-        final int taskId = taskManager.addNewTask(task5);
-        final int taskMapSize = taskManager.getTasks().size();
-        taskManager.deleteTask(taskId);
+        final int taskId = taskServerManager.addNewTask(task5);
+        final int taskMapSize = taskServerManager.getTasks().size();
+        taskServerManager.deleteTask(taskId);
 
-        assertNull(taskManager.getTask(taskId), TASK_DELETE_FAIL);
-        assertEquals(taskMapSize - 1, taskManager.getTasks().size(), TASKS_COUNT_NOT_CHANGE);
+        assertNull(taskServerManager.getTask(taskId), TASK_DELETE_FAIL);
+        assertEquals(taskMapSize - 1, taskServerManager.getTasks().size(), TASKS_COUNT_NOT_CHANGE);
     }
 
     @Test
     public void shouldNotDeleteTaskBadId() {
-        final int taskId = taskManager.addNewTask(task5);
-        final Task savedTask = taskManager.getTask(taskId);
-        final int taskMapSize = taskManager.getTasks().size();
+        final int taskId = taskServerManager.addNewTask(task5);
+        final Task savedTask = taskServerManager.getTask(taskId);
+        final int taskMapSize = taskServerManager.getTasks().size();
 
-        taskManager.deleteTask(-1);
+        taskServerManager.deleteTask(-1);
 
-        assertTrue(taskManager.getTasks().contains(savedTask), TASK_DELETE_WRONG);
-        assertEquals(taskMapSize, taskManager.getTasks().size(), TASKS_COUNT_NOT_CHANGE);
+        assertTrue(taskServerManager.getTasks().contains(savedTask), TASK_DELETE_WRONG);
+        assertEquals(taskMapSize, taskServerManager.getTasks().size(), TASKS_COUNT_NOT_CHANGE);
     }
 
     @Test
     public void shouldDeleteSubtask() {
-        final int epicId = taskManager.addNewEpic(epic4);
+        final int epicId = taskServerManager.addNewEpic(epic4);
         subtask7.setEpicId(epicId);
         subtask8.setEpicId(epicId);
-        final int subtask7Id = taskManager.addNewSubtask(subtask7);
-        final int subtask8Id = taskManager.addNewSubtask(subtask8);
-        final int taskMapSize = taskManager.getSubtasks().size();
+        final int subtask7Id = taskServerManager.addNewSubtask(subtask7);
+        final int subtask8Id = taskServerManager.addNewSubtask(subtask8);
+        final int taskMapSize = taskServerManager.getSubtasks().size();
 
-        final Subtask subtask = taskManager.getSubtask(subtask7Id);
+        final Subtask subtask = taskServerManager.getSubtask(subtask7Id);
         final int epicIdFromSubtask = subtask.getEpicId();
-        final Epic epic = taskManager.getEpic(epicIdFromSubtask);
+        final Epic epic = taskServerManager.getEpic(epicIdFromSubtask);
         final ArrayList<Subtask> subtaskArray = epic.getSubtaskArray();
         final int subtaskArraySize = subtaskArray.size();
 
-        taskManager.deleteSubtask(subtask.getId());
+        taskServerManager.deleteSubtask(subtask.getId());
 
-        assertNull(taskManager.getSubtask(subtask7Id), TASK_DELETE_FAIL);
-        assertEquals(taskMapSize - 1, taskManager.getSubtasks().size(), TASKS_COUNT_NOT_CHANGE);
+        assertNull(taskServerManager.getSubtask(subtask7Id), TASK_DELETE_FAIL);
+        assertEquals(taskMapSize - 1, taskServerManager.getSubtasks().size(), TASKS_COUNT_NOT_CHANGE);
         assertEquals(subtaskArraySize - 1, epic.getSubtaskArray().size(), TASKS_COUNT_NOT_CHANGE);
     }
 
     @Test
     public void shouldNotDeleteSubtaskBadId() {
-        final int epicId = taskManager.addNewEpic(epic5);
+        final int epicId = taskServerManager.addNewEpic(epic5);
         subtask9.setEpicId(epicId);
-        final int taskId = taskManager.addNewSubtask(subtask9);
-        final Subtask savedTask = taskManager.getSubtask(taskId);
-        final int taskMapSize = taskManager.getSubtasks().size();
+        final int taskId = taskServerManager.addNewSubtask(subtask9);
+        final Subtask savedTask = taskServerManager.getSubtask(taskId);
+        final int taskMapSize = taskServerManager.getSubtasks().size();
 
-        taskManager.deleteSubtask(-1);
+        taskServerManager.deleteSubtask(-1);
 
-        assertTrue(taskManager.getSubtasks().contains(savedTask), TASK_DELETE_WRONG);
-        assertEquals(taskMapSize, taskManager.getSubtasks().size(), TASKS_COUNT_NOT_CHANGE);
+        assertTrue(taskServerManager.getSubtasks().contains(savedTask), TASK_DELETE_WRONG);
+        assertEquals(taskMapSize, taskServerManager.getSubtasks().size(), TASKS_COUNT_NOT_CHANGE);
     }
 
     @Test
     public void shouldDeleteEpic() {
-        final int epicId = taskManager.addNewEpic(epic4);
-        final Epic epic = taskManager.getEpic(epicId);
-        final int taskMapSize = taskManager.getEpics().size();
+        final int epicId = taskServerManager.addNewEpic(epic4);
+        final Epic epic = taskServerManager.getEpic(epicId);
+        final int taskMapSize = taskServerManager.getEpics().size();
 
-        taskManager.deleteEpic(epicId);
+        taskServerManager.deleteEpic(epicId);
 
-        assertNull(taskManager.getEpic(epicId), TASK_DELETE_FAIL);
-        assertEquals(taskMapSize - 1, taskManager.getEpics().size(), TASKS_COUNT_NOT_CHANGE);
-        epic.getSubtaskArray().forEach((v) -> assertNull(taskManager.getSubtask(v.getId())
+        assertNull(taskServerManager.getEpic(epicId), TASK_DELETE_FAIL);
+        assertEquals(taskMapSize - 1, taskServerManager.getEpics().size(), TASKS_COUNT_NOT_CHANGE);
+        epic.getSubtaskArray().forEach((v) -> assertNull(taskServerManager.getSubtask(v.getId())
                 , "Не удаляются подзадачи при удалении эпика."));
     }
 
     @Test
     public void shouldNotDeleteEpicBadId() {
-        final int taskId = taskManager.addNewEpic(epic6);
-        final Epic savedTask = taskManager.getEpic(taskId);
-        final int taskMapSize = taskManager.getEpics().size();
+        final int taskId = taskServerManager.addNewEpic(epic6);
+        final Epic savedTask = taskServerManager.getEpic(taskId);
+        final int taskMapSize = taskServerManager.getEpics().size();
 
-        taskManager.deleteEpic(-1);
+        taskServerManager.deleteEpic(-1);
 
-        assertTrue(taskManager.getEpics().contains(savedTask), TASK_DELETE_WRONG);
-        assertEquals(taskMapSize, taskManager.getEpics().size(), TASKS_COUNT_NOT_CHANGE);
+        assertTrue(taskServerManager.getEpics().contains(savedTask), TASK_DELETE_WRONG);
+        assertEquals(taskMapSize, taskServerManager.getEpics().size(), TASKS_COUNT_NOT_CHANGE);
     }
 
     @Test
     public void shouldDeleteAllTasks() {
-        taskManager.deleteTasks();
+        taskServerManager.deleteTasks();
 
-        assertEquals(0, taskManager.getTasks().size(), TASKS_NOT_ALL_DELETED);
+        assertEquals(0, taskServerManager.getTasks().size(), TASKS_NOT_ALL_DELETED);
     }
 
     @Test
     public void shouldDeleteAllSubtasks() {
-        taskManager.deleteSubtasks();
+        taskServerManager.deleteSubtasks();
 
-        assertEquals(0, taskManager.getSubtasks().size(), SUBTASKS_NOT_ALL_DELETED);
-        taskManager.getEpics().forEach((v) -> assertEquals(0, v.getSubtaskArray().size()
+        assertEquals(0, taskServerManager.getSubtasks().size(), SUBTASKS_NOT_ALL_DELETED);
+        taskServerManager.getEpics().forEach((v) -> assertEquals(0, v.getSubtaskArray().size()
                 ,"Не у всех эпиков удалены подзадачи"));
     }
 
     @Test
     public void shouldDeleteAllEpics() {
-        taskManager.deleteEpics();
+        taskServerManager.deleteEpics();
 
-        assertEquals(0, taskManager.getEpics().size(), TASKS_NOT_ALL_DELETED);
-        assertEquals(0, taskManager.getSubtasks().size(), SUBTASKS_NOT_ALL_DELETED);
+        assertEquals(0, taskServerManager.getEpics().size(), TASKS_NOT_ALL_DELETED);
+        assertEquals(0, taskServerManager.getSubtasks().size(), SUBTASKS_NOT_ALL_DELETED);
     }
 
     @Test
     public void shouldReturnMinStrtAndSumDur() {
         LocalDateTime now = LocalDateTime.now();
-        final int epicStrtId = taskManager.addNewEpic(epicStrt);
+        final int epicStrtId = taskServerManager.addNewEpic(epicStrt);
         subtaskBeforeNow.setStartTime(now.minusDays(365));
         subtaskBeforeNow.setDuration(10);
         subtaskBeforeNow.setEpicId(epicStrtId);
@@ -384,55 +401,55 @@ public class TaskManagerTest<T extends TaskManager> {
         subtaskNow.setEpicId(epicStrtId);
         subtaskAfterNow.setStartTime(now.plusDays(20));
         subtaskAfterNow.setEpicId(epicStrtId);
-        taskManager.addNewSubtask(subtaskBeforeNow);
-        taskManager.addNewSubtask(subtaskNow);
-        taskManager.addNewSubtask(subtaskAfterNow);
+        taskServerManager.addNewSubtask(subtaskBeforeNow);
+        taskServerManager.addNewSubtask(subtaskNow);
+        taskServerManager.addNewSubtask(subtaskAfterNow);
 
-        assertEquals(20, taskManager.getEpic(epicStrtId).getDuration(), TASK_DUR_WRONG);
-        assertEquals(now.minusDays(365), taskManager.getEpic(epicStrtId).getStartTime()
+        assertEquals(20, taskServerManager.getEpic(epicStrtId).getDuration(), TASK_DUR_WRONG);
+        assertEquals(now.minusDays(365), taskServerManager.getEpic(epicStrtId).getStartTime()
                 , TASK_STARTTIME_WRONG);
-        assertEquals(now.minusDays(365).plusMinutes(20), taskManager.getEpic(epicStrtId).getEndTime()
+        assertEquals(now.minusDays(365).plusMinutes(20), taskServerManager.getEpic(epicStrtId).getEndTime()
                 , TASK_ENDTIME_WRONG);
-        assertNotNull(taskManager.getEpic(epicStrtId).getDuration(), TASK_DUR_FAIL);
-        assertNotNull(taskManager.getEpic(epicStrtId).getStartTime(), TASK_STARTTIME_FAIL);
-        assertNotNull(taskManager.getEpic(epicStrtId).getEndTime(), TASK_ENDTIME_FAIL);
+        assertNotNull(taskServerManager.getEpic(epicStrtId).getDuration(), TASK_DUR_FAIL);
+        assertNotNull(taskServerManager.getEpic(epicStrtId).getStartTime(), TASK_STARTTIME_FAIL);
+        assertNotNull(taskServerManager.getEpic(epicStrtId).getEndTime(), TASK_ENDTIME_FAIL);
     }
 
     @Test
     public void shouldReturnNullStrtOrDur() {
         LocalDateTime now = LocalDateTime.now();
-        final int epictId = taskManager.addNewEpic(epicNull);
+        final int epictId = taskServerManager.addNewEpic(epicNull);
         subtaskDur0.setStartTime(now);
         subtaskDur0.setEpicId(epictId);
         subtaskStrtNull.setDuration(6000);
         subtaskDur0.setEpicId(epictId);
-        taskManager.addNewSubtask(subtaskDur0);
-        taskManager.addNewSubtask(subtaskNow);
-        taskManager.addNewSubtask(subtaskAfterNow);
+        taskServerManager.addNewSubtask(subtaskDur0);
+        taskServerManager.addNewSubtask(subtaskNow);
+        taskServerManager.addNewSubtask(subtaskAfterNow);
 
-        assertEquals(6000, taskManager.getEpic(epictId).getDuration(), TASK_DUR_WRONG);
-        assertEquals(now, taskManager.getEpic(epictId).getStartTime(), TASK_STARTTIME_WRONG);
-        assertEquals(now.plusMinutes(6000), taskManager.getEpic(epictId).getEndTime(), TASK_ENDTIME_WRONG);
-        assertNotNull(taskManager.getEpic(epictId).getDuration(), TASK_DUR_FAIL);
-        assertNotNull(taskManager.getEpic(epictId).getStartTime(), TASK_STARTTIME_FAIL);
-        assertNotNull(taskManager.getEpic(epictId).getEndTime(), TASK_ENDTIME_FAIL);
+        assertEquals(6000, taskServerManager.getEpic(epictId).getDuration(), TASK_DUR_WRONG);
+        assertEquals(now, taskServerManager.getEpic(epictId).getStartTime(), TASK_STARTTIME_WRONG);
+        assertEquals(now.plusMinutes(6000), taskServerManager.getEpic(epictId).getEndTime(), TASK_ENDTIME_WRONG);
+        assertNotNull(taskServerManager.getEpic(epictId).getDuration(), TASK_DUR_FAIL);
+        assertNotNull(taskServerManager.getEpic(epictId).getStartTime(), TASK_STARTTIME_FAIL);
+        assertNotNull(taskServerManager.getEpic(epictId).getEndTime(), TASK_ENDTIME_FAIL);
     }
 
     @Test
     public void shouldReturnStrtWhenNotCrossed() {
         LocalDateTime now = LocalDateTime.now();
-        final int epicStrtId = taskManager.addNewEpic(epicStrt);
+        final int epicStrtId = taskServerManager.addNewEpic(epicStrt);
         subtaskBeforeNow.setStartTime(now.minusDays(365));
         subtaskBeforeNow.setDuration(10);
         subtaskBeforeNow.setEpicId(epicStrtId);
         subtaskNow.setStartTime(now);
         subtaskNow.setDuration(10);
         subtaskNow.setEpicId(epicStrtId);
-        taskManager.addNewSubtask(subtaskBeforeNow);
-        taskManager.addNewSubtask(subtaskNow);
+        taskServerManager.addNewSubtask(subtaskBeforeNow);
+        taskServerManager.addNewSubtask(subtaskNow);
         task2.setStartTime(now.plusMinutes(60));
         task2.setDuration(60);
-        taskManager.addNewTask(task2);
+        taskServerManager.addNewTask(task2);
 
         assertNotNull(task2.getStartTime(), TASK_NOT_CROSSED);
         assertEquals(now.plusMinutes(60), task2.getStartTime(), TASK_NOT_CROSSED);
@@ -447,9 +464,9 @@ public class TaskManagerTest<T extends TaskManager> {
         LocalDateTime now = LocalDateTime.now();
         task2.setStartTime(now.plusMinutes(60));
         task2.setDuration(60);
-        taskManager.addNewTask(task2);
+        taskServerManager.addNewTask(task2);
         task3.setStartTime(now.plusMinutes(80));
-        taskManager.addNewTask(task3);
+        taskServerManager.addNewTask(task3);
 
         assertNull(task3.getStartTime(), TASK_CROSSED);
     }
@@ -459,11 +476,11 @@ public class TaskManagerTest<T extends TaskManager> {
         LocalDateTime now = LocalDateTime.now();
         task2.setStartTime(now.plusMinutes(60));
         task2.setDuration(60);
-        taskManager.addNewTask(task2);
+        taskServerManager.addNewTask(task2);
         task3.setStartTime(now);
-        taskManager.addNewTask(task3);
+        taskServerManager.addNewTask(task3);
         task3.setStartTime(now.plusMinutes(80));
-        taskManager.updateTask(task3);
+        taskServerManager.updateTask(task3);
 
         assertNull(task3.getStartTime(), TASK_CROSSED);
     }
@@ -471,17 +488,17 @@ public class TaskManagerTest<T extends TaskManager> {
     @Test
     public void shouldReturnStrtWhenChangedAndNotCrossed() {
         LocalDateTime now = LocalDateTime.now();
-        final int epicStrtId = taskManager.addNewEpic(epicStrt);
+        final int epicStrtId = taskServerManager.addNewEpic(epicStrt);
         subtaskBeforeNow.setStartTime(now.minusMinutes(10));
         subtaskBeforeNow.setDuration(10);
         subtaskBeforeNow.setEpicId(epicStrtId);
         subtaskNow.setStartTime(now);
         subtaskNow.setDuration(10);
         subtaskNow.setEpicId(epicStrtId);
-        taskManager.addNewSubtask(subtaskBeforeNow);
-        taskManager.addNewSubtask(subtaskNow);
+        taskServerManager.addNewSubtask(subtaskBeforeNow);
+        taskServerManager.addNewSubtask(subtaskNow);
         subtaskBeforeNow.setStartTime(now.minusMinutes(30));
-        taskManager.updateTask(subtaskBeforeNow);
+        taskServerManager.updateTask(subtaskBeforeNow);
 
         assertNotNull(subtaskBeforeNow.getStartTime(), TASK_NOT_CROSSED);
         assertEquals(now.minusMinutes(30), subtaskBeforeNow.getStartTime(), TASK_NOT_CROSSED);
@@ -492,12 +509,12 @@ public class TaskManagerTest<T extends TaskManager> {
         LocalDateTime now = LocalDateTime.now();
         task2.setStartTime(now);
         task2.setDuration(60);
-        taskManager.addNewTask(task2);
+        taskServerManager.addNewTask(task2);
         task3.setStartTime(now.plusMinutes(20));
-        taskManager.addNewTask(task3);
+        taskServerManager.addNewTask(task3);
         task4.setStartTime(now.minusMinutes(20));
         task4.setDuration(40);
-        taskManager.addNewTask(task4);
+        taskServerManager.addNewTask(task4);
 
         assertNull(task3.getStartTime(), TASK_CROSSED);
         assertNull(task4.getStartTime(), TASK_CROSSED);
@@ -575,7 +592,7 @@ public class TaskManagerTest<T extends TaskManager> {
         }
     }
 
-    private int tasksInMemoryCount() {
+    private int tasksInMemoryCount(TaskManager taskManager) {
         return taskManager.getTasks().size()
                 + taskManager.getSubtasks().size()
                 + taskManager.getEpics().size();
@@ -583,30 +600,30 @@ public class TaskManagerTest<T extends TaskManager> {
 
     @Test
     public void shouldSerializeAllTasks() {
-        taskManager.addNewTask(task1);
-        taskManager.addNewTask(task2);
-        taskManager.addNewTask(task3);
-        taskManager.addNewEpic(epic1);
+        taskFileManager.addNewTask(task1);
+        taskFileManager.addNewTask(task2);
+        taskFileManager.addNewTask(task3);
+        taskFileManager.addNewEpic(epic1);
         subtask1.setEpicId(epic1.getId());
         subtask2.setEpicId(epic1.getId());
-        taskManager.addNewEpic(epic2);
-        taskManager.addNewEpic(epic3);
+        taskFileManager.addNewEpic(epic2);
+        taskFileManager.addNewEpic(epic3);
         subtask5.setEpicId(epic1.getId());
         subtask6.setEpicId(epic1.getId());
-        taskManager.addNewSubtask(subtask1);
-        taskManager.addNewSubtask(subtask2);
-        taskManager.addNewSubtask(subtask5);
-        taskManager.addNewSubtask(subtask6);
-        taskManager.getTask(task1.getId());
-        taskManager.getTask(task2.getId());
-        taskManager.getSubtask(subtask1.getId());
-        taskManager.getEpic(epic1.getId());
-        taskManager.getEpic(epic2.getId());
-        taskManager.getTask(task3.getId());
-        taskManager.getEpic(epic3.getId());
-        taskManager.getEpic(epic2.getId());
-        taskManager.getTask(task2.getId());
-        assertEquals(tasksInMemoryCount() , getTasksInFileCnt(), WRONG_LINE_COUNT);
+        taskFileManager.addNewSubtask(subtask1);
+        taskFileManager.addNewSubtask(subtask2);
+        taskFileManager.addNewSubtask(subtask5);
+        taskFileManager.addNewSubtask(subtask6);
+        taskFileManager.getTask(task1.getId());
+        taskFileManager.getTask(task2.getId());
+        taskFileManager.getSubtask(subtask1.getId());
+        taskFileManager.getEpic(epic1.getId());
+        taskFileManager.getEpic(epic2.getId());
+        taskFileManager.getTask(task3.getId());
+        taskFileManager.getEpic(epic3.getId());
+        taskFileManager.getEpic(epic2.getId());
+        taskFileManager.getTask(task2.getId());
+        assertEquals(tasksInMemoryCount(taskFileManager) , getTasksInFileCnt(), WRONG_LINE_COUNT);
     }
 
     private String getFileLineWithTasks() {
@@ -631,7 +648,7 @@ public class TaskManagerTest<T extends TaskManager> {
 
     @Test
     public void shouldSerializeTask() {
-        taskManager.addNewTask(task1);
+        taskFileManager.addNewTask(task1);
         String strTask = String.join(","
                 ,String.valueOf(task1.getId())
                 ,"TASK"
@@ -648,7 +665,7 @@ public class TaskManagerTest<T extends TaskManager> {
 
     @Test
     public void shouldSerializeTaskNullStartTimeAndDuration() {
-        taskManager.addNewTask(task2);
+        taskFileManager.addNewTask(task2);
         String strTask = String.join(","
                 ,String.valueOf(task2.getId())
                 ,"TASK"
@@ -666,15 +683,15 @@ public class TaskManagerTest<T extends TaskManager> {
 
     @Test
     public void shouldSerializeEpicAndSubtask() {
-        taskManager.addNewEpic(epic1);
+        taskFileManager.addNewEpic(epic1);
         subtask1.setEpicId(epic1.getId());
         subtask1.setDuration(10);
         subtask1.setStartTime(LocalDateTime.now());
         subtask2.setEpicId(epic1.getId());
         subtask2.setDuration(5);
         subtask2.setStartTime(LocalDateTime.now().minusDays(300));
-        taskManager.addNewSubtask(subtask1);
-        taskManager.addNewSubtask(subtask2);
+        taskFileManager.addNewSubtask(subtask1);
+        taskFileManager.addNewSubtask(subtask2);
         String strEpic = String.join(","
                 ,String.valueOf(epic1.getId())
                 ,"EPIC"
@@ -710,14 +727,14 @@ public class TaskManagerTest<T extends TaskManager> {
 
     @Test
     public void shouldNotSerializeSubtaskWithoutEpic() {
-        taskManager.addNewSubtask(subtask2);
+        taskFileManager.addNewSubtask(subtask2);
 
         assertEquals("",getFileLineWithTasks(), "Задача выгружена ошибочно.");
     }
 
     @Test
     public void shouldSerializeEpicsWithoutSubtasks() {
-        taskManager.addNewEpic(epic1);
+        taskFileManager.addNewEpic(epic1);
         String strEpic = String.join(","
                 ,String.valueOf(epic1.getId())
                 ,"EPIC"
@@ -754,23 +771,23 @@ public class TaskManagerTest<T extends TaskManager> {
 
     @Test
     public void shouldSerializeHistory() {
-        taskManager.addNewTask(task1);
-        taskManager.addNewTask(task2);
-        taskManager.addNewTask(task3);
-        taskManager.addNewEpic(epic1);
+        taskFileManager.addNewTask(task1);
+        taskFileManager.addNewTask(task2);
+        taskFileManager.addNewTask(task3);
+        taskFileManager.addNewEpic(epic1);
         subtask1.setEpicId(epic1.getId());
-        taskManager.addNewEpic(epic2);
+        taskFileManager.addNewEpic(epic2);
         subtask5.setEpicId(epic1.getId());
-        taskManager.addNewSubtask(subtask1);
-        taskManager.addNewSubtask(subtask6);
-        taskManager.getTask(task1.getId());
-        taskManager.getTask(task2.getId());
-        taskManager.getSubtask(subtask1.getId());
-        taskManager.getEpic(epic1.getId());
-        taskManager.getEpic(epic2.getId());
-        taskManager.getTask(task3.getId());
-        taskManager.getEpic(epic1.getId());
-        taskManager.getTask(task2.getId());
+        taskFileManager.addNewSubtask(subtask1);
+        taskFileManager.addNewSubtask(subtask6);
+        taskFileManager.getTask(task1.getId());
+        taskFileManager.getTask(task2.getId());
+        taskFileManager.getSubtask(subtask1.getId());
+        taskFileManager.getEpic(epic1.getId());
+        taskFileManager.getEpic(epic2.getId());
+        taskFileManager.getTask(task3.getId());
+        taskFileManager.getEpic(epic1.getId());
+        taskFileManager.getTask(task2.getId());
 
         assertEquals("1,6,5,3,4,2", getFileLineWithHistory()
                 , "История выгружена некорректно.");
@@ -778,72 +795,72 @@ public class TaskManagerTest<T extends TaskManager> {
 
     @Test
     public void shouldSerializeBlankHistory() {
-        taskManager.addNewTask(task1);
-        taskManager.addNewTask(task2);
-        taskManager.addNewTask(task3);
-        taskManager.addNewEpic(epic1);
+        taskFileManager.addNewTask(task1);
+        taskFileManager.addNewTask(task2);
+        taskFileManager.addNewTask(task3);
+        taskFileManager.addNewEpic(epic1);
         subtask1.setEpicId(epic1.getId());
-        taskManager.addNewEpic(epic2);
+        taskFileManager.addNewEpic(epic2);
         subtask5.setEpicId(epic1.getId());
-        taskManager.addNewSubtask(subtask1);
-        taskManager.addNewSubtask(subtask6);
+        taskFileManager.addNewSubtask(subtask1);
+        taskFileManager.addNewSubtask(subtask6);
 
         assertEquals("", getFileLineWithHistory(), "История должна быть пустой.");
     }
 
     @Test
     public void shouldNotSerializeTasksBlankMaps() {
-        taskManager.addNewTask(task1);
-        taskManager.addNewEpic(epic1);
+        taskFileManager.addNewTask(task1);
+        taskFileManager.addNewEpic(epic1);
         subtask1.setEpicId(epic1.getId());
         subtask2.setEpicId(epic1.getId());
-        taskManager.addNewSubtask(subtask1);
-        taskManager.addNewSubtask(subtask2);
+        taskFileManager.addNewSubtask(subtask1);
+        taskFileManager.addNewSubtask(subtask2);
 
-        assertEquals(tasksInMemoryCount() , getTasksInFileCnt(), WRONG_LINE_COUNT);
+        assertEquals(tasksInMemoryCount(taskFileManager) , getTasksInFileCnt(), WRONG_LINE_COUNT);
     }
 
     @Test
     public void shouldDeserializeTasks() {
-        taskManager.addNewTask(task1);
-        taskManager.addNewEpic(epic1);
-        taskManager.addNewTask(task3);
+        taskFileManager.addNewTask(task1);
+        taskFileManager.addNewEpic(epic1);
+        taskFileManager.addNewTask(task3);
         subtask1.setEpicId(epic1.getId());
         subtask2.setEpicId(epic1.getId());
-        taskManager.addNewSubtask(subtask1);
-        taskManager.addNewTask(task4);
-        taskManager.addNewSubtask(subtask2);
-        taskManager.addNewTask(task5);
+        taskFileManager.addNewSubtask(subtask1);
+        taskFileManager.addNewTask(task4);
+        taskFileManager.addNewSubtask(subtask2);
+        taskFileManager.addNewTask(task5);
 
-        taskManager.getTask(task1.getId());
-        taskManager.getSubtask(subtask1.getId());
-        taskManager.getEpic(epic1.getId());
-        taskManager.getTask(task1.getId());
+        taskFileManager.getTask(task1.getId());
+        taskFileManager.getSubtask(subtask1.getId());
+        taskFileManager.getEpic(epic1.getId());
+        taskFileManager.getTask(task1.getId());
 
         TaskManager manager = FileBackedTasksManager.loadFromFile(FileBackedTasksManager.FILEPATH);
-        taskManager.addNewTask(task2);
-        taskManager.getTask(task2.getId());
+        manager.addNewTask(task2);
+        manager.getTask(task2.getId());
 
-        assertNotNull(taskManager.getTasks(), TASKS_DESERIALIZATION_FAIL);
-        assertNotNull(taskManager.getSubtasks(), TASKS_DESERIALIZATION_FAIL);
-        assertNotNull(taskManager.getEpics(), TASKS_DESERIALIZATION_FAIL);
-        assertEquals(getTasksInFileCnt(), tasksInMemoryCount(), TASKS_DESERIALIZED_COUNT_WRONG);
+        assertNotNull(manager.getTasks(), TASKS_DESERIALIZATION_FAIL);
+        assertNotNull(manager.getSubtasks(), TASKS_DESERIALIZATION_FAIL);
+        assertNotNull(manager.getEpics(), TASKS_DESERIALIZATION_FAIL);
+        assertEquals(getTasksInFileCnt(), tasksInMemoryCount(manager), TASKS_DESERIALIZED_COUNT_WRONG);
 
         final int countTasksInHistory = getFileLineWithHistory().split(",").length;
 
-        assertNotNull(taskManager.getHistoryManager().getHistory(), "История не загрузилась.");
-        assertEquals(countTasksInHistory, taskManager.getHistoryManager().getHistory().size()
+        assertNotNull(manager.getHistoryManager().getHistory(), "История не загрузилась.");
+        assertEquals(countTasksInHistory, manager.getHistoryManager().getHistory().size()
                 , HISTORY_DESERIALIZED_COUNT_WRONG);
     }
 
     @Test
     public void shouldDeserializeTasksBlankHistory() {
-        taskManager.addNewTask(task1);
-        taskManager.addNewEpic(epic1);
+        taskFileManager.addNewTask(task1);
+        taskFileManager.addNewEpic(epic1);
         subtask1.setEpicId(epic1.getId());
         subtask2.setEpicId(epic1.getId());
-        taskManager.addNewSubtask(subtask1);
-        taskManager.addNewSubtask(subtask2);
+        taskFileManager.addNewSubtask(subtask1);
+        taskFileManager.addNewSubtask(subtask2);
 
         TaskManager manager = FileBackedTasksManager.loadFromFile(FileBackedTasksManager.FILEPATH);
         final boolean isBlankHistory = getFileLineWithHistory().isBlank();
@@ -852,11 +869,31 @@ public class TaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    public void shouldNotDeserializeTasksBlank() {
-        TaskManager manager = FileBackedTasksManager.loadFromFile(FileBackedTasksManager.FILEPATH);
-        assertTrue(taskManager.getTasks().isEmpty(), TASKS_DESERIALIZED_COUNT_WRONG);
-        assertTrue(taskManager.getSubtasks().isEmpty(), TASKS_DESERIALIZED_COUNT_WRONG);
-        assertTrue(taskManager.getEpics().isEmpty(), TASKS_DESERIALIZED_COUNT_WRONG);
+    public void shouldDeserializeServerTasks() {
+        taskServerManager.addNewTask(task1);
+        taskServerManager.addNewEpic(epic1);
+        taskServerManager.addNewTask(task3);
+        subtask1.setEpicId(epic1.getId());
+        subtask2.setEpicId(epic1.getId());
+        taskServerManager.addNewSubtask(subtask1);
+        taskServerManager.addNewTask(task4);
+        taskServerManager.addNewSubtask(subtask2);
+        taskServerManager.addNewTask(task5);
+
+        taskServerManager.getTask(task1.getId());
+        taskServerManager.getSubtask(subtask1.getId());
+        taskServerManager.getEpic(epic1.getId());
+        taskServerManager.getTask(task1.getId());
+
+        taskServerManager.loadFromServer();
+        taskServerManager.addNewTask(task2);
+        taskServerManager.getTask(task2.getId());
+
+        assertNotNull(taskServerManager.getTasks(), TASKS_DESERIALIZATION_FAIL);
+        assertNotNull(taskServerManager.getSubtasks(), TASKS_DESERIALIZATION_FAIL);
+        assertNotNull(taskServerManager.getEpics(), TASKS_DESERIALIZATION_FAIL);
+        assertEquals(tasksInMemoryCount(taskServerManager), server.getDataSize() - 1, TASKS_DESERIALIZED_COUNT_WRONG);
+        assertNotNull(taskServerManager.getHistoryManager().getHistory(), "История не загрузилась.");
     }
 
 }
