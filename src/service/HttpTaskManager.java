@@ -14,8 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HttpTaskManager extends FileBackedTasksManager {
-    private static final int PORT = 8078;
-    public static String URL = "localhost:" + PORT;
+    public static final String URL = "http://localhost:" + KVServer.PORT + "/register";
     private KVTaskClient client;
     private static List<String> keyList;
 
@@ -23,19 +22,18 @@ public class HttpTaskManager extends FileBackedTasksManager {
         super(Path.of(url));
         keyList = new ArrayList<>();
         try {
-            client = new KVTaskClient();
+            client = new KVTaskClient(URI.create(url));
         } catch (InterruptedException | IOException exception) {
             System.out.println("Ошибка коннекта к серверу.\n" +
                     "Проверьте, пожалуйста, адрес сервера и повторите попытку.");
 
         }
-        final URI uri = URI.create(url);
     }
 
     private void loadTaskFromServer(HttpTaskManager httpTaskManager, JsonObject jsonObj) {
         Task task;
         if (!jsonObj.isJsonNull()) {
-            int id = jsonObj.get("task").getAsInt();
+            int id = jsonObj.get("id").getAsInt();
             task = new Task(jsonObj.get("name").getAsString()
                     , jsonObj.get("dsc").getAsString()
                     , TaskStatus.valueOf(jsonObj.get("taskStatus").getAsString())
@@ -49,7 +47,7 @@ public class HttpTaskManager extends FileBackedTasksManager {
     private void loadSubtaskFromServer(HttpTaskManager httpTaskManager, JsonObject jsonObj) {
         Subtask task;
         if (!jsonObj.isJsonNull()) {
-            int id = jsonObj.get("task").getAsInt();
+            int id = jsonObj.get("id").getAsInt();
             task = new Subtask(jsonObj.get("name").getAsString()
                     , jsonObj.get("dsc").getAsString()
                     , TaskStatus.valueOf(jsonObj.get("taskStatus").getAsString())
@@ -64,7 +62,7 @@ public class HttpTaskManager extends FileBackedTasksManager {
     private void loadEpicFromServer(HttpTaskManager httpTaskManager, JsonObject jsonObj) {
         Epic task;
         if (!jsonObj.isJsonNull()) {
-            int id = jsonObj.get("task").getAsInt();
+            int id = jsonObj.get("id").getAsInt();
             task = new Epic(jsonObj.get("name").getAsString(), jsonObj.get("dsc").getAsString());
             task.setStatus(TaskStatus.valueOf(jsonObj.get("taskStatus").getAsString()));
             task.setDuration(jsonObj.get("duration").getAsInt());
@@ -134,7 +132,8 @@ public class HttpTaskManager extends FileBackedTasksManager {
         }
     }
 
-    private void save() {
+    @Override
+    protected void save() {
         Gson gson = new Gson();
         super.getTasks().forEach(this::putJsonTasks);
         super.getEpics().forEach(this::putJsonTasks);

@@ -22,7 +22,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         this.path = path;
     }
 
-    private void save() throws ManagerSaveException {
+    protected void save() throws ManagerSaveException {
         try (Writer fileWriter = new FileWriter(path.getFileName().toString())) {
             if (!Files.exists(path)) {
                 Files.createFile(path);

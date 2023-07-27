@@ -53,7 +53,7 @@ public class Task implements Comparable<Task> {
         String startDateStr = "";
         if (getStartTime() != null) {
             startDateStr = "Дата с: "
-                    + getStartTime().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
+                    + getStartTime().format(FORMATTER);
         }
         return "\nЗадача №" + id + ". " + name + '\n' + dsc + '\n'
                 + "Статус задачи: " + status + '\n' + startDateStr;

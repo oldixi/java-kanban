@@ -12,11 +12,11 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static service.Managers.getDefaultKVServer;
 
 public class TaskManagerTest<T extends TaskManager> {
     private static final String TASK_NOT_FOUND = "Задача не найдена.";
@@ -118,7 +118,7 @@ public class TaskManagerTest<T extends TaskManager> {
             if (server != null) {
                 server.stop();
             }
-            server = new KVServer();
+            server = getDefaultKVServer();
             server.start();
             taskServerManager = new HttpTaskManager(HttpTaskManager.URL);
         } catch (IOException e) {
