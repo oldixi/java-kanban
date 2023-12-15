@@ -49,8 +49,8 @@
 ## _Технологии проекта_
 
 > Java version 11 <br>
-> HttpClient
-> HttpServer
+> HttpClient<br>
+> HttpServer<br>
 > JUnit
 
 ## _Тестирование проекта_
